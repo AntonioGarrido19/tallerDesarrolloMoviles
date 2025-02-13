@@ -1,3 +1,9 @@
+//MIRAR HACER UN LISTADO PARA VER COMO IMPLEMENTAR LOCALSTORAGE
+
+//IMPLEMENTAR LOCALSTORAGE, localstorage.get... lo uso luego para registrar actividades, asignandolas al user logueado
+//CARGAR SELECT ACTIVIDADES REGISTRO ACTIVIDAD, SE LLAMA FUNCION EN MOSTRAR MENU VIP, vuelvo a home
+//REGISTRAR ACTIVIDAD
+
 class Usuario {
   constructor(usuario, password, pais) {
     this.usuario = usuario;
@@ -10,6 +16,15 @@ class UsuarioConectado {
   constructor(usuario, password) {
     this.usuario = usuario;
     this.password = password;
+  }
+}
+
+class Actividad {
+  constructor(idActividad, idUsuario, tiempo, fecha) {
+    this.idActividad = idActividad;
+    this.idUsuario = idUsuario;
+    this.tiempo = tiempo;
+    this.fecha = fecha;
   }
 }
 

@@ -174,7 +174,31 @@
         </ion-header>
 
         <ion-content class="ion-padding">
-          Acá va el formulario para registrar ejercicios
+          <ion-item>
+            <ion-label>
+              <h2>Registrar Ejercicio</h2>
+            </ion-label>
+          </ion-item>
+
+          <ion-item>
+            <ion-select
+              label="Ejercicio"
+              placeholder="Elija Ejercicio"
+              id="slcRegistrarEjercicio"
+            >
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-input label="Tipo:" id="txtRegistrarEjercicioTipo"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-input
+              type="date"
+              label="Fecha:"
+              id="txtRegistrarEjecricioFecha"
+            ></ion-input>
+          </ion-item>
         </ion-content>
       </page-registrarS>
 
