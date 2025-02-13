@@ -1,8 +1,7 @@
-//MIRAR HACER UN LISTADO PARA VER COMO IMPLEMENTAR LOCALSTORAGE
-
 //IMPLEMENTAR LOCALSTORAGE, localstorage.get... lo uso luego para registrar actividades, asignandolas al user logueado
 //CARGAR SELECT ACTIVIDADES REGISTRO ACTIVIDAD, SE LLAMA FUNCION EN MOSTRAR MENU VIP, vuelvo a home
 //REGISTRAR ACTIVIDAD
+//SELECT DE LISTADO CON, "TODOS", "SEMANA", "MES" Y BOTON MOSTRAR LISTADO
 
 class Usuario {
   constructor(usuario, password, pais) {
@@ -50,7 +49,18 @@ function inicio() {
   document
     .querySelector("#btnLogin")
     .addEventListener("click", previaHacerLogin);
+
+  chequearSesion();
+  cargarActividadesSelect();
 }
+
+document
+  .querySelector("#btnMenuListado")
+  .addEventListener("click", previaListado);
+
+document
+  .querySelector("#btnMenuLogout")
+  .addEventListener("click", cerrarSesion);
 
 function cerrarMenu() {
   MENU.close();
@@ -84,7 +94,7 @@ function escribirPaisesSelect(listaPaises) {
 function navegar(evt) {
   let destino = evt.detail.to;
   ocultarPantallas();
-  if (destino == "/") HOME.style.display = "block";
+  if (destino == "/home") HOME.style.display = "block";
   if (destino == "/login") LOGIN.style.display = "block";
   if (destino == "/registrarS") registrarS.style.display = "block";
   if (destino == "/registrarU") REGISTRARU.style.display = "block";
@@ -182,9 +192,9 @@ function hacerLogin(nuevoUsuarioConectado) {
         ocultarPantallas();
         HOME.style.display = "block";
         mostrarMensaje("SUCCESS", "Login Exitoso", "Puedes usar la App", 3000);
-        // mostrar el MENU VIP
         localStorage.setItem("id", informacion.id);
         localStorage.setItem("apiKey", informacion.apiKey);
+        chequearSesion();
       } else {
         mostrarMensaje("ERROR", "Error", "No fue posible ingresar", 3000);
       }
@@ -194,29 +204,41 @@ function hacerLogin(nuevoUsuarioConectado) {
     });
 }
 
+//FUNCIONES DEL MENU
 function ocultarMenu() {
-  document.querySelector("#btnMenuRegistrarU").style.display.none;
-  document.querySelector("#btnMenuLogin").style.display.none;
-  document.querySelector("#btnMenuregistrarS").style.display.none;
-  document.querySelector("#btnMenuListado").style.display.none;
-  document.querySelector("#btnMenuInforme").style.display.none;
-  document.querySelector("#btnMenuMapa").style.display.none;
-  document.querySelector("#btnMenuLogout").style.display.none;
+  document.querySelector("#btnMenuRegistrarU").style.display = "none";
+  document.querySelector("#btnMenuLogin").style.display = "none";
+  document.querySelector("#btnMenuRegistrarS").style.display = "none";
+  document.querySelector("#btnMenuListado").style.display = "none";
+  document.querySelector("#btnMenuInforme").style.display = "none";
+  document.querySelector("#btnMenuMapa").style.display = "none";
+  document.querySelector("#btnMenuLogout").style.display = "none";
 }
 
 function mostrarMenuLogin() {
-  document.querySelector("#btnMenuLogin").style.display.block;
-  document.querySelector("#btnMenuRegistrarU").style.display.block;
+  document.querySelector("#btnMenuLogin").style.display = "block";
+  document.querySelector("#btnMenuRegistrarU").style.display = "block";
 }
 
 function mostrarMenuVIP() {
-  document.querySelector("#btnMenuregistrarS").style.display.block;
-  document.querySelector("#btnMenuListado").style.display.block;
-  document.querySelector("#btnMenuInforme").style.display.block;
-  document.querySelector("#btnMenuMapa").style.display.block;
-  document.querySelector("#btnMenuLogout").style.display.block;
+  document.querySelector("#btnMenuRegistrarS").style.display = "block";
+  document.querySelector("#btnMenuListado").style.display = "block";
+  document.querySelector("#btnMenuInforme").style.display = "block";
+  document.querySelector("#btnMenuMapa").style.display = "block";
+  document.querySelector("#btnMenuLogout").style.display = "block";
 }
 
+function chequearSesion() {
+  ocultarMenu();
+
+  if (localStorage.getItem("id") == null) {
+    mostrarMenuLogin();
+  } else {
+    mostrarMenuVIP();
+  }
+}
+
+//MENSAJE DE EXITO O ERROR
 function mostrarMensaje(tipo, titulo, texto, duracion) {
   const toast = document.createElement("ion-toast");
   toast.header = titulo;
@@ -238,4 +260,124 @@ function mostrarMensaje(tipo, titulo, texto, duracion) {
 
   document.body.appendChild(toast);
   toast.present();
+}
+
+//LISTAR ACTIVIDADES ${localStorage.getItem("id")}
+function previaListado() {
+  const idUsuario = localStorage.getItem("id");
+
+  fetch(`${URLBASE}registros.php?idUsuario=${idUsuario}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: localStorage.getItem("apiKey"),
+      iduser: idUsuario,
+    },
+  })
+    .then(function (response) {
+      console.log(response);
+      return response.json();
+    })
+    .then(function (informacion) {
+      mostrarListado(informacion.registros);
+      console.log(informacion);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}
+
+//DEBO USAR EL ID DINAMICO
+function mostrarListado(listaEjercicios) {
+  console.log(listaEjercicios);
+  let misEjercicios = "";
+  for (let unEj of listaEjercicios) {
+    misEjercicios += `<ion-item>
+<ion-label>
+<h3>Id: ${unEj.id}</h2>
+<h3>Actividad: ${unEj.idActividad}</h3>
+<h3>Timpo: ${unEj.tiempo}</h3>
+<h3>Fecha: ${unEj.fecha}</h3>
+</ion-label>
+<ion-button onclick="eliminarRegistro(${unEj.id})"
+>Eliminar</ion-button>
+</ion-item>`;
+  }
+
+  document.querySelector("#cotenedor-listado").innerHTML = misEjercicios;
+}
+
+//ELIMINAR ACTIVIDADES
+function eliminarRegistro(idRegistro) {
+  fetch(`${URLBASE}/registros.php?${idRegistro}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: localStorage.getItem("apiKey"),
+      iduser: localStorage.getItem("id"),
+    },
+    body: { idRegistro: idRegistro },
+  })
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (data) {
+      if (data && data.error) {
+        throw data.error;
+      } else {
+        mostrarMensaje(
+          "SUCCESS",
+          "Registro Eliminado",
+          "Has eliminado un registro.",
+          2000
+        );
+        previaListado();
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}
+
+//REGISTRAR ACTIVIDADES
+
+function cargarActividadesSelect() {
+  fetch(`${URLBASE}actividades.php`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: localStorage.getItem("apiKey"), // recupero apiKey
+      iduser: localStorage.getItem("id"), // recupero id
+    },
+  })
+    .then(function (response) {
+      console.log(response);
+      return response.json();
+    })
+    .then(function (informacion) {
+      escribirActividadesSelect(informacion.actividades);
+      console.log(informacion);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}
+
+function escribirActividadesSelect(listaActividades) {
+  let miSelect = "";
+
+  for (let miActividad of listaActividades) {
+    miSelect += `  <ion-select-option value=${miActividad.id}>${miActividad.nombre}</ion-select-option>`;
+  }
+  document.querySelector("#slcRegistrarEjercicio").innerHTML = miSelect;
+}
+
+//CERRAR SESION
+function cerrarSesion() {
+  localStorage.removeItem("id");
+  localStorage.removeItem("apiKey");
+
+  ocultarMenu();
+  mostrarMenuLogin();
+  mostrarMensaje("SUCCESS", "Sesión Cerrada", "Has cerrado sesión.", 2000);
 }
