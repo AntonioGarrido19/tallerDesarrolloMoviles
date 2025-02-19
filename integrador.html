@@ -190,15 +190,22 @@
           </ion-item>
 
           <ion-item>
-            <ion-input label="Tipo:" id="txtRegistrarEjercicioTipo"></ion-input>
+            <ion-input
+              label="Tiempo:"
+              id="txtRegistrarEjercicioTiempo"
+            ></ion-input>
           </ion-item>
           <ion-item>
             <ion-input
               type="date"
               label="Fecha:"
-              id="txtRegistrarEjecricioFecha"
+              id="txtRegistrarEjercicioFecha"
             ></ion-input>
           </ion-item>
+
+          <ion-button id="btnRegistrarActividad"
+            >Registrar Actividad</ion-button
+          >
         </ion-content>
       </page-registrarS>
 
@@ -213,9 +220,7 @@
           </ion-toolbar>
         </ion-header>
 
-        <ion-content class="ion-padding" id="cotenedor-listado">
-          Aca va el listado de ejercicios
-        </ion-content>
+        <ion-content class="ion-padding" id="cotenedor-listado"> </ion-content>
       </page-listado>
 
       <!-- página informes  -->
@@ -229,7 +234,9 @@
           </ion-toolbar>
         </ion-header>
 
-        <ion-content class="ion-padding"> Aca va el informe </ion-content>
+        <ion-content class="ion-padding" id="cotenedor-informe">
+          Aca va el informe
+        </ion-content>
       </page-informe>
 
       <!-- página mapa  -->

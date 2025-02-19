@@ -1,6 +1,3 @@
-//IMPLEMENTAR LOCALSTORAGE, localstorage.get... lo uso luego para registrar actividades, asignandolas al user logueado
-//CARGAR SELECT ACTIVIDADES REGISTRO ACTIVIDAD, SE LLAMA FUNCION EN MOSTRAR MENU VIP, vuelvo a home
-//REGISTRAR ACTIVIDAD
 //SELECT DE LISTADO CON, "TODOS", "SEMANA", "MES" Y BOTON MOSTRAR LISTADO
 
 class Usuario {
@@ -50,6 +47,8 @@ function inicio() {
     .querySelector("#btnLogin")
     .addEventListener("click", previaHacerLogin);
 
+  HOME.style.display = "block";
+
   chequearSesion();
   cargarActividadesSelect();
 }
@@ -59,11 +58,19 @@ document
   .addEventListener("click", previaListado);
 
 document
+  .querySelector("#btnMenuInforme")
+  .addEventListener("click", previaInforme);
+
+document
   .querySelector("#btnMenuLogout")
   .addEventListener("click", cerrarSesion);
 
 function cerrarMenu() {
   MENU.close();
+
+  document
+    .querySelector("#btnRegistrarActividad")
+    .addEventListener("click", previaRegistraActividad);
 }
 
 //CARGAR SELECT REGISTRO
@@ -94,6 +101,7 @@ function escribirPaisesSelect(listaPaises) {
 function navegar(evt) {
   let destino = evt.detail.to;
   ocultarPantallas();
+  if (destino == "/") HOME.style.display = "block";
   if (destino == "/home") HOME.style.display = "block";
   if (destino == "/login") LOGIN.style.display = "block";
   if (destino == "/registrarS") registrarS.style.display = "block";
@@ -262,7 +270,7 @@ function mostrarMensaje(tipo, titulo, texto, duracion) {
   toast.present();
 }
 
-//LISTAR ACTIVIDADES ${localStorage.getItem("id")}
+//LISTAR ACTIVIDADES
 function previaListado() {
   const idUsuario = localStorage.getItem("id");
 
@@ -296,7 +304,7 @@ function mostrarListado(listaEjercicios) {
 <ion-label>
 <h3>Id: ${unEj.id}</h2>
 <h3>Actividad: ${unEj.idActividad}</h3>
-<h3>Timpo: ${unEj.tiempo}</h3>
+<h3>Tiempo: ${unEj.tiempo}</h3>
 <h3>Fecha: ${unEj.fecha}</h3>
 </ion-label>
 <ion-button onclick="eliminarRegistro(${unEj.id})"
@@ -370,6 +378,104 @@ function escribirActividadesSelect(listaActividades) {
     miSelect += `  <ion-select-option value=${miActividad.id}>${miActividad.nombre}</ion-select-option>`;
   }
   document.querySelector("#slcRegistrarEjercicio").innerHTML = miSelect;
+}
+
+//PETICIÓN REGISTRO ACTIVIDAD
+function previaRegistraActividad() {
+  let idActividad = document.querySelector("#slcRegistrarEjercicio").value;
+  let idUsuario = localStorage.getItem("id");
+  let tiempo = document.querySelector("#txtRegistrarEjercicioTiempo").value;
+  let fecha = document.querySelector("#txtRegistrarEjercicioFecha").value;
+
+  let nuevaActividad = new Actividad(idActividad, idUsuario, tiempo, fecha);
+  hacerRegistroActividad(nuevaActividad);
+}
+
+function hacerRegistroActividad(nuevaActividad) {
+  fetch(`${URLBASE}registros.php`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: localStorage.getItem("apiKey"), // recupero apiKey
+      iduser: localStorage.getItem("id"), // recupero id
+    },
+    body: JSON.stringify(nuevaActividad),
+  })
+    .then(function (response) {
+      console.log(response);
+      return response.json();
+    })
+    .then(function (informacion) {
+      if (informacion.codigo >= 200 && informacion.codigo <= 299) {
+        console.log(informacion);
+
+        mostrarMensaje(
+          "SUCCESS",
+          "Registro Exitoso",
+          "Se relgistro una nueva actividad",
+          3000
+        );
+      } else {
+        mostrarMensaje(
+          "ERROR",
+          "Error",
+          "No fue posible hacer el registro",
+          3000
+        );
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}
+
+//PREVIA INFORME
+function previaInforme() {
+  const idUsuario = localStorage.getItem("id");
+
+  fetch(`${URLBASE}registros.php?idUsuario=${idUsuario}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: localStorage.getItem("apiKey"),
+      iduser: idUsuario,
+    },
+  })
+    .then(function (response) {
+      console.log(response);
+      return response.json();
+    })
+    .then(function (informacion) {
+      mostrarInforme(informacion.registros);
+      console.log(informacion);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}
+
+//MOSTRAR INFORME
+
+function mostrarInforme(listaActividades) {
+  let tiempoTotal = 0;
+
+  for (let act of listaActividades) {
+    tiempoTotal += act.tiempo;
+  }
+
+  let mostrarTiempo = `
+
+  <ion-item>  <h4>Tu tiempo total de actividades es:</h4>
+  <p>${tiempoTotal} minutos</p>
+</ion-item>
+
+<ion-item>
+    <h4>Tu tiempo total de actividades hoy es:</h4>
+  <p>${tiempoTotal} minutos</p>
+</ion-item>
+  `;
+  document.querySelector("#cotenedor-informe").innerHTML = mostrarTiempo;
+  console.log(tiempoTotal);
 }
 
 //CERRAR SESION
