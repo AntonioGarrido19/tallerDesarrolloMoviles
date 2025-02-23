@@ -71,7 +71,13 @@ function cerrarMenu() {
   document
     .querySelector("#btnRegistrarActividad")
     .addEventListener("click", previaRegistraActividad);
+
+  document.querySelector("#btnMenuMapa").addEventListener("click", armarMapa);
+  usuariosPorPais();
 }
+
+//Variable global para almacenar lista de paises
+let listaPaisesGlobal = [];
 
 //CARGAR SELECT REGISTRO
 function cargarPaisesSelect() {
@@ -81,6 +87,7 @@ function cargarPaisesSelect() {
     })
     .then(function (informacion) {
       console.log(informacion);
+      listaPaisesGlobal = informacion.paises;
       escribirPaisesSelect(informacion.paises);
     })
     .catch(function (error) {
@@ -127,8 +134,17 @@ function previaRegistrarUsuario() {
   let password = document.querySelector("#txtRegistrarUPassword").value;
   let pais = document.querySelector("#slcRegistrarUPais").value;
 
-  let nuevoUsuario = new Usuario(usuario, password, pais);
-  hacerRegistroUsuario(nuevoUsuario);
+  if (usuario != "" && password != "" && pais != "") {
+    let nuevoUsuarioConectado = new UsuarioConectado(usuario, password);
+    hacerLogin(nuevoUsuarioConectado);
+  } else {
+    mostrarMensaje(
+      "ERROR",
+      "Todos los campos deben ser completados",
+      "No has podido registrarte.",
+      2000
+    );
+  }
 }
 
 function hacerRegistroUsuario(nuevoUsuario) {
@@ -177,8 +193,17 @@ function previaHacerLogin() {
   let usuario = document.querySelector("#txtLoginUsuario").value;
   let password = document.querySelector("#txtLoginPassword").value;
 
-  let nuevoUsuarioConectado = new UsuarioConectado(usuario, password);
-  hacerLogin(nuevoUsuarioConectado);
+  if (usuario != "" && password != "") {
+    let nuevoUsuario = new Usuario(usuario, password, pais);
+    hacerRegistroUsuario(nuevoUsuario);
+  } else {
+    mostrarMensaje(
+      "ERROR",
+      "Todos los campos deben ser completados",
+      "No has podido ingresar.",
+      2000
+    );
+  }
 }
 
 function hacerLogin(nuevoUsuarioConectado) {
@@ -296,9 +321,21 @@ function previaListado() {
 }
 
 //DEBO USAR EL ID DINAMICO
+
+function devolverImagen(id) {
+  let urlBaseImagenes = "https://movetrack.develotion.com/imgs/";
+  for (let unaActividad of actividadesGlobal) {
+    if (unaActividad.id == id) {
+      let imagenURL = `${urlBaseImagenes}${unaActividad.imagen}.png`;
+      return imagenURL;
+    }
+  }
+}
+
 function mostrarListado(listaEjercicios) {
   console.log(listaEjercicios);
   let misEjercicios = "";
+
   for (let unEj of listaEjercicios) {
     misEjercicios += `<ion-item>
 <ion-label>
@@ -306,6 +343,7 @@ function mostrarListado(listaEjercicios) {
 <h3>Actividad: ${unEj.idActividad}</h3>
 <h3>Tiempo: ${unEj.tiempo}</h3>
 <h3>Fecha: ${unEj.fecha}</h3>
+ <img src="${devolverImagen(unEj.idActividad)}" alt="Imagen de ${unEj.nombre}">
 </ion-label>
 <ion-button onclick="eliminarRegistro(${unEj.id})"
 >Eliminar</ion-button>
@@ -349,6 +387,8 @@ function eliminarRegistro(idRegistro) {
 
 //REGISTRAR ACTIVIDADES
 
+let actividadesGlobal = [];
+
 function cargarActividadesSelect() {
   fetch(`${URLBASE}actividades.php`, {
     method: "GET",
@@ -364,6 +404,7 @@ function cargarActividadesSelect() {
     })
     .then(function (informacion) {
       escribirActividadesSelect(informacion.actividades);
+      actividadesGlobal = informacion.actividades;
       console.log(informacion);
     })
     .catch(function (error) {
@@ -381,14 +422,24 @@ function escribirActividadesSelect(listaActividades) {
 }
 
 //PETICIÓN REGISTRO ACTIVIDAD
+
 function previaRegistraActividad() {
   let idActividad = document.querySelector("#slcRegistrarEjercicio").value;
   let idUsuario = localStorage.getItem("id");
   let tiempo = document.querySelector("#txtRegistrarEjercicioTiempo").value;
   let fecha = document.querySelector("#txtRegistrarEjercicioFecha").value;
 
-  let nuevaActividad = new Actividad(idActividad, idUsuario, tiempo, fecha);
-  hacerRegistroActividad(nuevaActividad);
+  if (idActividad != "" && idUsuario != "" && tiempo != "" && fecha != "") {
+    let nuevaActividad = new Actividad(idActividad, idUsuario, tiempo, fecha);
+    hacerRegistroActividad(nuevaActividad);
+  } else {
+    mostrarMensaje(
+      "ERROR",
+      "Todos los campos deben ser completados",
+      "No has podido ingresar tu actividad.",
+      2000
+    );
+  }
 }
 
 function hacerRegistroActividad(nuevaActividad) {
@@ -456,10 +507,20 @@ function previaInforme() {
 
 //MOSTRAR INFORME
 
+//
+
 function mostrarInforme(listaActividades) {
   let tiempoTotal = 0;
+  let tiempoDia = 0;
+
+  const hoy = new Date().toISOString().split("T")[0];
 
   for (let act of listaActividades) {
+    const fechaActividad = new Date(act.fecha).toISOString().split("T")[0];
+
+    if (hoy == fechaActividad) {
+      tiempoDia += act.tiempo;
+    }
     tiempoTotal += act.tiempo;
   }
 
@@ -471,11 +532,73 @@ function mostrarInforme(listaActividades) {
 
 <ion-item>
     <h4>Tu tiempo total de actividades hoy es:</h4>
-  <p>${tiempoTotal} minutos</p>
+  <p>${tiempoDia} minutos</p>
 </ion-item>
   `;
   document.querySelector("#cotenedor-informe").innerHTML = mostrarTiempo;
   console.log(tiempoTotal);
+}
+
+//MAPA
+
+//GUARDO EN VARIABLE GLOBAL ARRAY PAISES
+
+//HAGO PETICION DE USUARIOS POR PAIS
+let listaPaisesCantidadUsuariosGlobal = [];
+
+function usuariosPorPais() {
+  fetch(`${URLBASE}usuariosPorPais.php`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: localStorage.getItem("apiKey"),
+      iduser: localStorage.getItem("id"),
+    },
+  })
+    .then(function (response) {
+      console.log(response);
+      return response.json();
+    })
+    .then(function (informacion) {
+      listaPaisesCantidadUsuariosGlobal = informacion.paises;
+      console.log(listaPaisesCantidadUsuariosGlobal);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}
+
+function obtenerUsuariosPais(id) {
+  for (let unPais of listaPaisesCantidadUsuariosGlobal) {
+    console.log("Procesando país:", unPais);
+    if (unPais.id == id) {
+      console.log("ID encontrado:", unPais.id);
+      console.log("Usuarios encontrados:", unPais.cantidadDeUsuarios);
+      return unPais.cantidadDeUsuarios;
+    }
+  }
+}
+
+//LUEGO DEBO PONER LOS DATOS EN EL MAPA
+
+let map;
+
+function armarMapa() {
+  usuariosPorPais();
+  map = L.map("map").setView([51.505, -0.09], 15);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 3,
+    attribution: "OpenStreetMap",
+  }).addTo(map);
+
+  for (let unPais of listaPaisesGlobal) {
+    let marker = L.marker([unPais.latitude, unPais.longitude]).addTo(map);
+    info = `${unPais.name} Cantidad de usuarios: ${obtenerUsuariosPais(
+      unPais.id
+    )}`;
+
+    marker.bindPopup(info).openPopup();
+  }
 }
 
 //CERRAR SESION
