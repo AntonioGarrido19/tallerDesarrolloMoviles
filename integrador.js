@@ -51,6 +51,7 @@ function inicio() {
 
   chequearSesion();
   cargarActividadesSelect();
+  usuariosPorPais();
 }
 
 document
@@ -72,8 +73,11 @@ function cerrarMenu() {
     .querySelector("#btnRegistrarActividad")
     .addEventListener("click", previaRegistraActividad);
 
+  document
+    .querySelector("#slcFiltrarListado")
+    .addEventListener("ionChange", mostrarListado);
+
   document.querySelector("#btnMenuMapa").addEventListener("click", armarMapa);
-  usuariosPorPais();
 }
 
 //Variable global para almacenar lista de paises
@@ -135,8 +139,8 @@ function previaRegistrarUsuario() {
   let pais = document.querySelector("#slcRegistrarUPais").value;
 
   if (usuario != "" && password != "" && pais != "") {
-    let nuevoUsuarioConectado = new UsuarioConectado(usuario, password);
-    hacerLogin(nuevoUsuarioConectado);
+    let nuevoUsuario = new Usuario(usuario, password, pais);
+    hacerRegistroUsuario(nuevoUsuario);
   } else {
     mostrarMensaje(
       "ERROR",
@@ -194,8 +198,8 @@ function previaHacerLogin() {
   let password = document.querySelector("#txtLoginPassword").value;
 
   if (usuario != "" && password != "") {
-    let nuevoUsuario = new Usuario(usuario, password, pais);
-    hacerRegistroUsuario(nuevoUsuario);
+    let nuevoUsuarioConectado = new UsuarioConectado(usuario, password);
+    hacerLogin(nuevoUsuarioConectado);
   } else {
     mostrarMensaje(
       "ERROR",
@@ -312,12 +316,81 @@ function previaListado() {
       return response.json();
     })
     .then(function (informacion) {
-      mostrarListado(informacion.registros);
+      filtrarListadoPorFecha(informacion.registros);
+      mostrarListado();
       console.log(informacion);
     })
     .catch(function (error) {
       console.log(error);
     });
+}
+
+//TRABAJAMOS CON FECHAS PARA PODER FILTRAR
+function obtenerFechaHoy() {
+  const hoy = new Date();
+
+  const anio = hoy.getFullYear();
+  const mes = ("0" + (hoy.getMonth() + 1)).slice(-2);
+  const dia = ("0" + hoy.getDate()).slice(-2);
+
+  let fecha = anio + "-" + mes + "-" + dia;
+  return fecha;
+}
+
+function restarDias(fechaString, dias) {
+  let fecha = new Date(fechaString);
+  fecha.setDate(fecha.getDate() - dias);
+
+  const anio = fecha.getFullYear();
+  const mes = ("0" + (fecha.getMonth() + 1)).slice(-2);
+  const dia = ("0" + fecha.getDate()).slice(-2);
+
+  return `${anio}-${mes}-${dia}`;
+}
+
+let fechaHoy = obtenerFechaHoy();
+console.log("Hoy:", fechaHoy); // Ejemplo: "2025-02-23"
+
+let fechaSemanaAtras = restarDias(fechaHoy, 7);
+console.log("Hace una semana:", fechaSemanaAtras); // Ejemplo: "2025-02-16"
+
+let fechaMesAtras = restarDias(fechaHoy, 30);
+console.log("Hace un mes:", fechaMesAtras); // Ejemplo: "2025-01-24"
+
+let actividadesSemana = [];
+let actividadesMes = [];
+let actividadesTodas = [];
+
+function filtrarListadoPorFecha(listaActividades) {
+  actividadesSemana = [];
+  actividadesMes = [];
+  actividadesTodas = [];
+  console.log(actividadesSemana);
+  console.log(actividadesMes);
+  console.log(actividadesTodas);
+
+  for (let act of listaActividades) {
+    if (act.fecha >= fechaSemanaAtras) {
+      actividadesSemana.push(act);
+    }
+    if (act.fecha >= fechaMesAtras) {
+      actividadesMes.push(act);
+    }
+    actividadesTodas.push(act);
+  }
+}
+
+//CHEQUEO SELECT A VER QUE DEVUELVO
+
+function devolverListadoFiltrado() {
+  let valorSlc = parseInt(document.querySelector("#slcFiltrarListado").value);
+  if (valorSlc == 1) {
+    return actividadesSemana;
+  } else if (valorSlc == 2) {
+    return actividadesMes;
+  } else {
+    return actividadesTodas;
+  }
 }
 
 //DEBO USAR EL ID DINAMICO
@@ -332,11 +405,12 @@ function devolverImagen(id) {
   }
 }
 
-function mostrarListado(listaEjercicios) {
-  console.log(listaEjercicios);
-  let misEjercicios = "";
+function mostrarListado() {
+  let listaActividadesMostrar = devolverListadoFiltrado();
+  console.log(listaActividadesMostrar);
 
-  for (let unEj of listaEjercicios) {
+  let misEjercicios = "";
+  for (let unEj of listaActividadesMostrar) {
     misEjercicios += `<ion-item>
 <ion-label>
 <h3>Id: ${unEj.id}</h2>
@@ -355,7 +429,7 @@ function mostrarListado(listaEjercicios) {
 
 //ELIMINAR ACTIVIDADES
 function eliminarRegistro(idRegistro) {
-  fetch(`${URLBASE}/registros.php?${idRegistro}`, {
+  fetch(`${URLBASE}/registros.php?idRegistro=${idRegistro}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -378,6 +452,7 @@ function eliminarRegistro(idRegistro) {
           2000
         );
         previaListado();
+        previaInforme();
       }
     })
     .catch(function (error) {
@@ -388,6 +463,7 @@ function eliminarRegistro(idRegistro) {
 //REGISTRAR ACTIVIDADES
 
 let actividadesGlobal = [];
+console.log(actividadesGlobal);
 
 function cargarActividadesSelect() {
   fetch(`${URLBASE}actividades.php`, {
@@ -606,6 +682,7 @@ function cerrarSesion() {
   localStorage.removeItem("id");
   localStorage.removeItem("apiKey");
 
+  ocultarPantallas();
   ocultarMenu();
   mostrarMenuLogin();
   mostrarMensaje("SUCCESS", "Sesión Cerrada", "Has cerrado sesión.", 2000);
