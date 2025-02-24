@@ -337,6 +337,7 @@ function obtenerFechaHoy() {
   return fecha;
 }
 
+//FUNCION PARA RESTAR DIAS A LAS FECHAS
 function restarDias(fechaString, dias) {
   let fecha = new Date(fechaString);
   fecha.setDate(fecha.getDate() - dias);
@@ -348,19 +349,17 @@ function restarDias(fechaString, dias) {
   return `${anio}-${mes}-${dia}`;
 }
 
+//DEFINIMOS LAS FECHAS DESDE DONDE VAMOS A COMPRAR
 let fechaHoy = obtenerFechaHoy();
-console.log("Hoy:", fechaHoy); // Ejemplo: "2025-02-23"
-
 let fechaSemanaAtras = restarDias(fechaHoy, 7);
-console.log("Hace una semana:", fechaSemanaAtras); // Ejemplo: "2025-02-16"
-
 let fechaMesAtras = restarDias(fechaHoy, 30);
-console.log("Hace un mes:", fechaMesAtras); // Ejemplo: "2025-01-24"
 
+//VARIABLES GLOBALES PARA PODER ACCEDER A LAS LISTAS FILTRADAS
 let actividadesSemana = [];
 let actividadesMes = [];
 let actividadesTodas = [];
 
+//AGREGAMOS LAS ACTIVIDADES QUE CORRESPONDEN A CADA LISTA, SIEMPRE VACIANDO ANTES LAS LISTAS GLOBALES
 function filtrarListadoPorFecha(listaActividades) {
   actividadesSemana = [];
   actividadesMes = [];
@@ -381,7 +380,6 @@ function filtrarListadoPorFecha(listaActividades) {
 }
 
 //CHEQUEO SELECT A VER QUE DEVUELVO
-
 function devolverListadoFiltrado() {
   let valorSlc = parseInt(document.querySelector("#slcFiltrarListado").value);
   if (valorSlc == 1) {
@@ -393,8 +391,7 @@ function devolverListadoFiltrado() {
   }
 }
 
-//DEBO USAR EL ID DINAMICO
-
+//COMPARO LAS ACTIVIDADES REGISSTRADAS CON LA LISTA DE ACTIVIDADES ORIGINAL PARA BUSCAR SU IMAGEN
 function devolverImagen(id) {
   let urlBaseImagenes = "https://movetrack.develotion.com/imgs/";
   for (let unaActividad of actividadesGlobal) {
@@ -405,6 +402,8 @@ function devolverImagen(id) {
   }
 }
 
+//MUESTRO DINAMICAMENTE EL LISTADO RECORRIENDO LA LISTA FILTRADA, EJECUTO LA FUNCION EN EL PEDIDO A LA API Y CON UN
+//EVENTO ONCHANGE ASOCIADO AL SELECT DEL FILTRO
 function mostrarListado() {
   let listaActividadesMostrar = devolverListadoFiltrado();
   console.log(listaActividadesMostrar);
