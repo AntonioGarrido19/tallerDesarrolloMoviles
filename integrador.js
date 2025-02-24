@@ -204,8 +204,6 @@ function previaHacerLogin() {
 
   if (usuario != "" && password != "") {
     let nuevoUsuarioConectado = new UsuarioConectado(usuario, password);
-    console.log(nuevoUsuarioConectado);
-
     hacerLogin(nuevoUsuarioConectado);
   } else {
     mostrarMensaje(
@@ -371,9 +369,6 @@ function filtrarListadoPorFecha(listaActividades) {
   actividadesSemana = [];
   actividadesMes = [];
   actividadesTodas = [];
-  console.log(actividadesSemana);
-  console.log(actividadesMes);
-  console.log(actividadesTodas);
 
   for (let act of listaActividades) {
     if (act.fecha >= fechaSemanaAtras) {
@@ -413,7 +408,6 @@ function devolverImagen(id) {
 //EVENTO ONCHANGE ASOCIADO AL SELECT DEL FILTRO
 function mostrarListado() {
   let listaActividadesMostrar = devolverListadoFiltrado();
-  console.log(listaActividadesMostrar);
 
   let misEjercicios = "";
   for (let unEj of listaActividadesMostrar) {
@@ -468,7 +462,6 @@ function eliminarRegistro(idRegistro) {
 //REGISTRAR ACTIVIDADES
 
 let actividadesGlobal = [];
-console.log(actividadesGlobal);
 
 function cargarActividadesSelect() {
   fetch(`${URLBASE}actividades.php`, {
@@ -595,11 +588,9 @@ function mostrarInforme(listaActividades) {
   let tiempoDia = 0;
 
   const hoy = new Date().toDateString();
-  console.log(hoy);
 
   for (let act of listaActividades) {
     const fechaActividad = new Date(act.fecha).toDateString();
-    console.log(fechaActividad);
 
     if (hoy == fechaActividad) {
       tiempoDia += act.tiempo;
@@ -619,7 +610,6 @@ function mostrarInforme(listaActividades) {
 </ion-item>
   `;
   document.querySelector("#cotenedor-informe").innerHTML = mostrarTiempo;
-  console.log(tiempoTotal);
 }
 
 //MAPA
@@ -644,7 +634,6 @@ function usuariosPorPais() {
     })
     .then(function (informacion) {
       listaPaisesCantidadUsuariosGlobal = informacion.paises;
-      console.log(listaPaisesCantidadUsuariosGlobal);
     })
     .catch(function (error) {
       console.log(error);
@@ -653,10 +642,7 @@ function usuariosPorPais() {
 
 function obtenerUsuariosPais(id) {
   for (let unPais of listaPaisesCantidadUsuariosGlobal) {
-    console.log("Procesando país:", unPais);
     if (unPais.id == id) {
-      console.log("ID encontrado:", unPais.id);
-      console.log("Usuarios encontrados:", unPais.cantidadDeUsuarios);
       return unPais.cantidadDeUsuarios;
     }
   }
