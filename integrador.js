@@ -175,6 +175,11 @@ function hacerRegistroUsuario(nuevoUsuario) {
         );
         ocultarPantallas();
         HOME.style.display = "block";
+        let nuevoUsuarioConectado = new UsuarioConectado(
+          nuevoUsuario.usuario,
+          nuevoUsuario.password
+        );
+        hacerLogin(nuevoUsuarioConectado);
         // en su obligatorio van a guardar el usuario y el token en el localStorage
         //van mostrar el menú de usuario conectado
       } else {
@@ -199,6 +204,8 @@ function previaHacerLogin() {
 
   if (usuario != "" && password != "") {
     let nuevoUsuarioConectado = new UsuarioConectado(usuario, password);
+    console.log(nuevoUsuarioConectado);
+
     hacerLogin(nuevoUsuarioConectado);
   } else {
     mostrarMensaje(
@@ -451,7 +458,6 @@ function eliminarRegistro(idRegistro) {
           2000
         );
         previaListado();
-        previaInforme();
       }
     })
     .catch(function (error) {
@@ -588,10 +594,12 @@ function mostrarInforme(listaActividades) {
   let tiempoTotal = 0;
   let tiempoDia = 0;
 
-  const hoy = new Date().toISOString().split("T")[0];
+  const hoy = new Date().toDateString();
+  console.log(hoy);
 
   for (let act of listaActividades) {
-    const fechaActividad = new Date(act.fecha).toISOString().split("T")[0];
+    const fechaActividad = new Date(act.fecha).toDateString();
+    console.log(fechaActividad);
 
     if (hoy == fechaActividad) {
       tiempoDia += act.tiempo;
@@ -657,6 +665,10 @@ function obtenerUsuariosPais(id) {
 //LUEGO DEBO PONER LOS DATOS EN EL MAPA
 
 let map;
+
+if (map) {
+  map.remove();
+}
 
 function armarMapa() {
   usuariosPorPais();
