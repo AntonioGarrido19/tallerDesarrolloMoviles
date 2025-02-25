@@ -50,7 +50,6 @@ function inicio() {
   HOME.style.display = "block";
 
   chequearSesion();
-  cargarActividadesSelect();
   usuariosPorPais();
 }
 
@@ -268,6 +267,7 @@ function mostrarMenuVIP() {
   document.querySelector("#btnMenuInforme").style.display = "block";
   document.querySelector("#btnMenuMapa").style.display = "block";
   document.querySelector("#btnMenuLogout").style.display = "block";
+  cargarActividadesSelect();
 }
 
 function chequearSesion() {
@@ -461,6 +461,12 @@ function eliminarRegistro(idRegistro) {
 
 //REGISTRAR ACTIVIDADES
 
+function tomarBtnRegistroAct() {
+  document
+    .querySelector("#btnRegistrarActividad")
+    .addEventListener("click", previaRegistraActividad);
+}
+
 let actividadesGlobal = [];
 
 function cargarActividadesSelect() {
@@ -497,11 +503,26 @@ function escribirActividadesSelect(listaActividades) {
 
 //PETICIÓN REGISTRO ACTIVIDAD
 
+document.addEventListener("DOMContentLoaded", (event) => {
+  limitarFechaActual();
+});
+function limitarFechaActual() {
+  const hoy = new Date();
+  const año = hoy.getFullYear();
+  const mes = ("0" + (hoy.getMonth() + 1)).slice(-2);
+  const dia = ("0" + hoy.getDate()).slice(-2);
+  const horas = ("0" + hoy.getHours()).slice(-2);
+  const minutos = ("0" + hoy.getMinutes()).slice(-2);
+  const segundos = ("0" + hoy.getSeconds()).slice(-2);
+  const fechaMaxima = `${año}-${mes}-${dia}T${horas}:${minutos}:${segundos}`;
+  document.querySelector("#txtFecha").setAttribute("max", fechaMaxima);
+}
+
 function previaRegistraActividad() {
   let idActividad = document.querySelector("#slcRegistrarEjercicio").value;
   let idUsuario = localStorage.getItem("id");
   let tiempo = document.querySelector("#txtRegistrarEjercicioTiempo").value;
-  let fecha = document.querySelector("#txtRegistrarEjercicioFecha").value;
+  let fecha = document.querySelector("#txtFecha").value;
 
   if (idActividad != "" && idUsuario != "" && tiempo != "" && fecha != "") {
     let nuevaActividad = new Actividad(idActividad, idUsuario, tiempo, fecha);
@@ -583,21 +604,22 @@ function previaInforme() {
 
 //
 
-function mostrarInforme(listaActividades) {
+function mostrarInforme(registros) {
   let tiempoTotal = 0;
   let tiempoDia = 0;
 
-  const hoy = new Date().toDateString();
+  const hoy = obtenerFechaHoy();
+  console.log(hoy);
 
-  for (let act of listaActividades) {
-    const fechaActividad = new Date(act.fecha).toDateString();
+  for (let reg of registros) {
+    const fechaActividad = reg.fecha;
+    console.log(fechaActividad);
 
     if (hoy == fechaActividad) {
-      tiempoDia += act.tiempo;
+      tiempoDia += reg.tiempo;
     }
-    tiempoTotal += act.tiempo;
+    tiempoTotal += reg.tiempo;
   }
-
   let mostrarTiempo = `
 
   <ion-item>  <h4>Tu tiempo total de actividades es:</h4>
